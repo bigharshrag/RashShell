@@ -100,14 +100,12 @@ int custom_cmds(char** cargs)
 
 int handle_redir(char **cargs)
 {
-
-
 	// char **cmd1, **cmd2, **cmd3; 
 	// cmd1 < cmd2 > cmd3
 	int buff_size = CMD_BUFF_SIZE; // max can be allocated buffer
 	char **cmd1 = malloc(buff_size * sizeof(char*));
-	char **cmd2 = malloc(buff_size * sizeof(char*));
-	char **cmd3 = malloc(buff_size * sizeof(char*));
+	char *cmd2 = malloc(sizeof(char*));
+	char *cmd3 = malloc(sizeof(char*));
 	int i = 0, cmd_cnt = 0, pres_flag = 0;
 	int in, out;
 
@@ -130,58 +128,29 @@ int handle_redir(char **cargs)
 
 	i = 0;
 
-	while(cargs[i] != NULL)
-	{	
-		if(!(strcmp(cargs[i], "<") == 0 || strcmp(cargs[i], ">") == 0))
-		{
-			// strcpy(cmd1[i], cargs[i]);
-			cmd1[cmd_cnt] = cargs[i];
-			++i;
-			++cmd_cnt;
-
-			if(cmd_cnt > buff_size)
-			{
-				buff_size += CMD_BUFF_SIZE;
-				cmd1 = realloc(cmd1, buff_size * sizeof(char*)); // Increase the buffer
-			}
-		}
-		else
-		{
-			pres_flag = 1;
-			cmd1[cmd_cnt] = NULL;
-			break;
-		}
-	}
-
-	if(pres_flag == 0)
+	while(!(strcmp(cargs[i], "<") == 0 || strcmp(cargs[i], ">") == 0))
 	{
-		return 0;
-	}
+		// strcpy(cmd1[i], cargs[i]);
+		cmd1[cmd_cnt] = cargs[i];
+		++i; ++cmd_cnt;
 
+		if(cmd_cnt > buff_size)
+		{
+			buff_size += CMD_BUFF_SIZE;
+			cmd1 = realloc(cmd1, buff_size * sizeof(char*)); // Increase the buffer
+		}
+	}
+	cmd1[cmd_cnt] = NULL;
+	
 	pid = fork();
 	if(pid == 0)
 	{
-		cmd_cnt = 0;
 		if(strcmp(cargs[i], "<") == 0)
 		{
 			++i;
-			while(cargs[i] != NULL)
-			{	
-				if(!(strcmp(cargs[i], "<") == 0 || strcmp(cargs[i], ">") == 0))
-				{
-					// strcpy(cmd2[cmd_cnt],cargs[i]);
-					cmd2[cmd_cnt] = cargs[i];
-					++i;
-					++cmd_cnt;
-				}
-				else
-				{
-				// 	pres_flag = 1;
-				// 	cmd1[cmd_cnt] = NULL;
-					break;
-				}
-			}
-			in = open(cmd2[0], O_RDONLY);
+			cmd2 = cargs[i];
+			// strcpy(cmd2, cargs[i]);
+			in = open(cmd2, O_RDONLY);
 			dup2(in, STDIN_FILENO);
 			close(in);
 
@@ -195,23 +164,9 @@ int handle_redir(char **cargs)
 		else if(strcmp(cargs[i], ">") == 0)
 		{
 			++i;
-			while(cargs[i] != NULL)
-			{	
-				if(!(strcmp(cargs[i], "<") == 0 || strcmp(cargs[i], ">") == 0))
-				{
-					// strcpy(cmd2[cmd_cnt],cargs[i]);
-					cmd2[cmd_cnt] = cargs[i];
-					++i;
-					++cmd_cnt;
-				}
-				else
-				{
-				// 	pres_flag = 1;
-				// 	cmd1[cmd_cnt] = NULL;
-					break;
-				}
-			}
-			out = open(cmd2[0], O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
+			cmd2 = cargs[i];
+			
+			out = open(cmd2, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
 			dup2(out, STDOUT_FILENO);
 			close(out);
 
