@@ -33,10 +33,22 @@ char **get_tokens(char * inp)
 	return cargs;
 }
 
+void exit_cmd()
+{
+	exit(EXIT_SUCCESS);
+}
+
 void run_command(char** cargs)
 {
 	int pid, status, w;
 	int ret;
+
+
+	// check for known commands
+	if( strcmp(cargs[0], "exit") == 0 )
+	{
+		exit_cmd();
+	}
 
 	pid = fork();
 	if(pid == 0)
@@ -44,6 +56,7 @@ void run_command(char** cargs)
 		ret = execvp(cargs[0], cargs);
 		if(ret = -1)
 		{
+			printf("Could not execute the requested command. Please check the command.\n");
 			exit(EXIT_FAILURE); // Use over exit(1) as in man page
 		}
 	}
@@ -55,7 +68,6 @@ void run_command(char** cargs)
                 exit(EXIT_FAILURE);
             }
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-        exit(EXIT_SUCCESS);
 	}
 	else{
 		printf("Error executing the command. That's all I know.\n");
@@ -65,7 +77,7 @@ void run_command(char** cargs)
 int main()
 {
 
-	signal(SIGINT, intHandler);
+	signal(SIGINT, SIG_IGN); // SIG_IGN ignores the signal
 
 	while(1)
 	{
@@ -86,9 +98,9 @@ int main()
 			if(b_read == 1)
 			{
 				// Empty command
+				printf("rash> ");
 				continue;
 			}
-
 			cargs = get_tokens(inp);
 			run_command(cargs);
 			printf("rash> ");
