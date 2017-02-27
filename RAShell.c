@@ -38,6 +38,15 @@ void exit_cmd()
 	exit(EXIT_SUCCESS);
 }
 
+void cd_cmd(char *path)
+{
+	int ret = chdir(path);
+	if(ret == -1)
+	{
+		perror("rash: cd command failed");
+	}
+}
+
 void run_command(char** cargs)
 {
 	int pid, status, w;
@@ -45,18 +54,22 @@ void run_command(char** cargs)
 
 
 	// check for known commands
-	if( strcmp(cargs[0], "exit") == 0 )
+	if(strcmp(cargs[0], "exit") == 0)
 	{
 		exit_cmd();
 	}
-
+	else if(strcmp(cargs[0], "cd") == 0)
+	{
+		cd_cmd(cargs[1]);
+	}
+	else{
 	pid = fork();
 	if(pid == 0)
 	{
 		ret = execvp(cargs[0], cargs);
-		if(ret = -1)
+		if(ret == -1)
 		{
-			printf("Could not execute the requested command. Please check the command.\n");
+			perror("rash: command not found");
 			exit(EXIT_FAILURE); // Use over exit(1) as in man page
 		}
 	}
@@ -71,6 +84,7 @@ void run_command(char** cargs)
 	}
 	else{
 		printf("Error executing the command. That's all I know.\n");
+	}
 	}
 }
 
