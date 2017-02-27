@@ -47,6 +47,32 @@ void cd_cmd(char *path)
 	}
 }
 
+void add_to_history(char *inp)
+{
+	FILE *history_fp;
+	history_fp = fopen("rash_history", "a+");
+	int ret = fputs(inp, history_fp);
+	fputc('\n', history_fp);
+	if(ret == EOF)
+	{
+		perror("rash: error in creating history");
+	}
+	fclose(history_fp);
+}
+
+void history_cmd()
+{
+	int c;
+	FILE *history_fp;
+	history_fp = fopen("rash_history", "r");
+	if (history_fp) {
+	    while ((c = getc(history_fp)) != EOF)
+	        putchar(c);
+	    fclose(history_fp);
+	}
+
+}
+
 void run_command(char** cargs)
 {
 	int pid, status, w;
@@ -61,6 +87,10 @@ void run_command(char** cargs)
 	else if(strcmp(cargs[0], "cd") == 0)
 	{
 		cd_cmd(cargs[1]);
+	}
+	else if(strcmp(cargs[0], "history") == 0)
+	{
+		history_cmd();
 	}
 	else{
 	pid = fork();
@@ -115,6 +145,9 @@ int main()
 				printf("rash> ");
 				continue;
 			}
+
+			add_to_history(inp);
+
 			cargs = get_tokens(inp);
 			run_command(cargs);
 			printf("rash> ");
