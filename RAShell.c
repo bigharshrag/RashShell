@@ -35,14 +35,27 @@ char **get_tokens(char * inp)
 
 void run_command(char** cargs)
 {
-	int pid;
+	int pid, status, w;
+	int ret;
 
 	pid = fork();
-	if(pid == 0){
-		execvp(cargs[0], cargs);
+	if(pid == 0)
+	{
+		ret = execvp(cargs[0], cargs);
+		if(ret = -1)
+		{
+			exit(EXIT_FAILURE); // Use over exit(1) as in man page
+		}
 	}
 	else if(pid > 0){
-		wait(0);
+		do {
+            w = waitpid(pid, &status, WUNTRACED | WCONTINUED);
+            if (w == -1) {
+                perror("waitpid");
+                exit(EXIT_FAILURE);
+            }
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+        exit(EXIT_SUCCESS);
 	}
 	else{
 		printf("Error executing the command. That's all I know.\n");
@@ -51,6 +64,9 @@ void run_command(char** cargs)
 
 int main()
 {
+
+	signal(SIGINT, intHandler);
+
 	while(1)
 	{
         char *inp = NULL;
@@ -60,7 +76,7 @@ int main()
 		size_t argno;
         size_t b_read; //bytes read from getline()
 
-		printf("ussh> ");
+		printf("rash> ");
         while ((b_read = getline(&inp, &len, stdin)) != -1) 
         {
 	        // printf("Retrieved inp of length %zu :\n", b_read);
@@ -75,9 +91,9 @@ int main()
 
 			cargs = get_tokens(inp);
 			run_command(cargs);
-
-			printf("ussh> ");
+			printf("rash> ");
 		}
 	}
+
 	return 0;
 }
