@@ -1,3 +1,7 @@
+/**
+ * RAShell - Reasonably Advanced Shell
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -76,6 +80,11 @@ void history_cmd()
 
 }
 
+void help_cmd()
+{
+	printf("Commands\ncd <Directory> - To change directory\nhistory        - gives history of commands\nexit           - exit the shell\n");
+}
+
 int custom_cmds(char** cargs)
 {	
 	int ret = 0;
@@ -93,6 +102,11 @@ int custom_cmds(char** cargs)
 	else if(strcmp(cargs[0], "history") == 0)
 	{
 		history_cmd();
+		ret = 1;
+	}
+	else if(strcmp(cargs[0], "help") == 0)
+	{
+		help_cmd();
 		ret = 1;
 	}
 	return ret;
